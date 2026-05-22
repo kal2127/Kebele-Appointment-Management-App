@@ -1,13 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/app_constants.dart';
 import '../models/user_model.dart';
 import '../services/auth_api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider(this._authApiService);
-
-  static const _tokenKey = 'auth_token';
 
   final AuthApiService _authApiService;
 
@@ -33,7 +32,7 @@ class AuthProvider extends ChangeNotifier {
       _token = session.token;
       _user = session.user;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, session.token);
+      await prefs.setString(AppConstants.authTokenPreferenceKey, session.token);
       return true;
     } catch (_) {
       _errorMessage = 'error_generic';
@@ -48,7 +47,7 @@ class AuthProvider extends ChangeNotifier {
     _token = null;
     _user = null;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
+    await prefs.remove(AppConstants.authTokenPreferenceKey);
     notifyListeners();
   }
 }

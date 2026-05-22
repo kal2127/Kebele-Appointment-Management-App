@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'core/app_constants.dart';
 import 'core/app_localizations.dart';
 import 'core/app_routes.dart';
 import 'core/app_theme.dart';
@@ -58,7 +59,7 @@ class KebeleAppointmentApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Kebele Appointment Management System',
+      title: AppConstants.appName,
       theme: AppTheme.light(),
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

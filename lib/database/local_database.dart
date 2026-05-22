@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 
+import '../core/app_constants.dart';
 import '../models/appointment_model.dart';
 import '../models/service_model.dart';
 
@@ -16,7 +17,7 @@ class LocalDatabase {
     if (_database != null) return _database!;
     final databasePath = await getDatabasesPath();
     _database = await openDatabase(
-      '$databasePath/kebele_appointments.db',
+      '$databasePath/${AppConstants.localDatabaseName}',
       version: 1,
       onCreate: _createDatabase,
     );

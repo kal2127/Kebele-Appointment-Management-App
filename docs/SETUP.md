@@ -2,7 +2,8 @@
 
 ## Flutter app
 
-1. Install Flutter 3.x.
+1. Install a current Flutter SDK that includes Dart 3.10 or newer. This is
+   required by the current `sqflite` and `shared_preferences` releases.
 2. From the repository root, generate platform folders if this repository was
    cloned without them:
 
@@ -26,26 +27,29 @@ The app defaults to Amharic. Users can switch between Amharic and English from t
 
 ## Backend
 
-1. Install Dart and Dart Frog CLI:
+1. Install Dart 2.19.x for the backend package. The requested `mysql1` package
+   is currently constrained to Dart `<3.0`, so the backend uses the latest
+   Dart Frog/JWT versions compatible with `mysql1`.
+2. Install the Dart Frog CLI:
 
 ```bash
-dart pub global activate dart_frog_cli
+dart pub global activate dart_frog_cli 0.3.6
 ```
 
-2. Create the MySQL database:
+3. Create the MySQL database:
 
 ```bash
 mysql -u root -p < database/schema.sql
 ```
 
-3. Install backend packages:
+4. Install backend packages:
 
 ```bash
 cd backend
 dart pub get
 ```
 
-4. Set environment variables:
+5. Set environment variables. `backend/.env.example` lists the required keys:
 
 ```bash
 export MYSQL_HOST=127.0.0.1
@@ -56,7 +60,7 @@ export MYSQL_DATABASE=kebele_appointments
 export JWT_SECRET=change_this_secret
 ```
 
-5. Start the API:
+6. Start the API:
 
 ```bash
 dart_frog dev
