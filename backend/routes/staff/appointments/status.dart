@@ -24,9 +24,22 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   try {
-    requireUser(context, role: 'staff');
+    final user = requireUser(context, role: 'staff');
     final body = await context.request.json() as Map<String, dynamic>;
-    final status = body['status'] as String;
+    final appointmentNumber = body['appointment_number']?.toString().trim();
+    final status = body['status']?.toString().trim();
+    if (appointmentNumber == null || appointmentNumber.isEmpty) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'message': 'appointment_number is required.'},
+      );
+    }
+    if (status == null || status.isEmpty) {
+      return Response.json(
+        statusCode: HttpStatus.badRequest,
+        body: {'message': 'status is required.'},
+      );
+    }
     if (!allowedStatuses.contains(status)) {
       return Response.json(
         statusCode: HttpStatus.badRequest,
@@ -35,8 +48,9 @@ Future<Response> onRequest(RequestContext context) async {
     }
 
     final repository = AppointmentRepository(MySqlConnectionFactory());
-    await repository.updateStatus(
-      appointmentNumber: body['appointment_number'] as String,
+    await repository.updateStatusForStaff(
+      staffId: user.id,
+      appointmentNumber: appointmentNumber,
       status: status,
     );
     return Response.json(body: {'message': 'Status updated.'});

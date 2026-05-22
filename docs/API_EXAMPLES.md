@@ -68,6 +68,25 @@ curl -X POST http://localhost:8080/staff/login \
   }'
 ```
 
+## Staff appointment filters
+
+```bash
+curl "http://localhost:8080/staff/appointments?date=2026-06-01&status=Pending&service_id=1" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Staff update appointment status
+
+```bash
+curl -X PUT http://localhost:8080/staff/appointments/status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appointment_number": "KBL-1-1780000000000",
+    "status": "Confirmed"
+  }'
+```
+
 ## Admin create service
 
 ```bash

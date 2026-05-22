@@ -20,6 +20,8 @@ class AuthProvider extends ChangeNotifier {
   UserModel? get user => _user;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _token != null && _user != null;
+  bool get isStaff => _user?.role == UserRole.staff;
+  bool get isAdmin => _user?.role == UserRole.admin;
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;

@@ -264,6 +264,41 @@ class AppointmentRepository {
     }
   }
 
+  Future<void> updateStatusForStaff({
+    required int staffId,
+    required String appointmentNumber,
+    required String status,
+  }) async {
+    final connection = await _connectionFactory.open();
+    try {
+      final matches = await connection.query(
+        '''
+        SELECT a.id
+        FROM appointments a
+        INNER JOIN users u ON u.assigned_service_id = a.service_id
+        WHERE u.id = ? AND a.appointment_number = ?
+        LIMIT 1
+        ''',
+        [staffId, appointmentNumber],
+      );
+      if (matches.isEmpty) {
+        throw StateError('Appointment not found for assigned service.');
+      }
+
+      await connection.query(
+        '''
+        UPDATE appointments a
+        INNER JOIN users u ON u.assigned_service_id = a.service_id
+        SET a.status = ?
+        WHERE u.id = ? AND a.appointment_number = ?
+        ''',
+        [status, staffId, appointmentNumber],
+      );
+    } finally {
+      await connection.close();
+    }
+  }
+
   String _generateAppointmentNumber(int serviceId) {
     final timestamp = DateTime.now().microsecondsSinceEpoch;
     return 'KBL-$serviceId-$timestamp';

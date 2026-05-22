@@ -11,10 +11,12 @@ import 'providers/appointment_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/service_provider.dart';
+import 'providers/staff_provider.dart';
 import 'services/api_client.dart';
 import 'services/appointment_api_service.dart';
 import 'services/auth_api_service.dart';
 import 'services/service_api_service.dart';
+import 'services/staff_api_service.dart';
 import 'utils/language_preference.dart';
 
 Future<void> main() async {
@@ -43,6 +45,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(AuthApiService(apiClient)),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => StaffProvider(StaffApiService(apiClient)),
         ),
       ],
       child: const KebeleAppointmentApp(),

@@ -13,7 +13,9 @@ import '../screens/feedback/feedback_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/services/service_details_screen.dart';
 import '../screens/services/service_list_screen.dart';
+import '../screens/staff/staff_appointment_management_screen.dart';
 import '../screens/staff/staff_dashboard_screen.dart';
+import '../screens/staff/update_appointment_status_screen.dart';
 
 class AppRoutes {
   static const home = '/';
@@ -27,6 +29,8 @@ class AppRoutes {
   static const feedback = '/feedback';
   static const login = '/login';
   static const staffDashboard = '/staff/dashboard';
+  static const staffAppointments = '/staff/appointments';
+  static const staffUpdateStatus = '/staff/appointments/status';
   static const adminDashboard = '/admin/dashboard';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -67,6 +71,16 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case staffDashboard:
         return MaterialPageRoute(builder: (_) => const StaffDashboardScreen());
+      case staffAppointments:
+        return MaterialPageRoute(
+          builder: (_) => const StaffAppointmentManagementScreen(),
+        );
+      case staffUpdateStatus:
+        return MaterialPageRoute(
+          builder: (_) => UpdateAppointmentStatusScreen(
+            appointment: settings.arguments as AppointmentModel,
+          ),
+        );
       case adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
       default:
