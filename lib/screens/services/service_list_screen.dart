@@ -28,6 +28,8 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
   @override
   Widget build(BuildContext context) {
     final serviceProvider = context.watch<ServiceProvider>();
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('service_list_title'))),
@@ -44,11 +46,11 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 16),
-                  if (!serviceProvider.isOnline)
+                  if (showOffline)
                     OfflineBanner(
                       message: context.tr('offline_services_notice'),
                     ),
-                  if (!serviceProvider.isOnline) const SizedBox(height: 16),
+                  if (showOffline) const SizedBox(height: 16),
                   if (serviceProvider.isLoading)
                     const Center(child: CircularProgressIndicator())
                   else if (serviceProvider.services.isEmpty)

@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_localizations.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/service_provider.dart';
 import '../../utils/validators.dart';
+import '../../widgets/offline_banner.dart';
 import '../../widgets/responsive_page.dart';
 
 class CancelAppointmentScreen extends StatefulWidget {
@@ -19,6 +21,14 @@ class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
   final _numberController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ServiceProvider>().loadServices();
+    });
+  }
+
+  @override
   void dispose() {
     _numberController.dispose();
     super.dispose();
@@ -27,6 +37,9 @@ class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppointmentProvider>();
+    final serviceProvider = context.watch<ServiceProvider>();
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('cancel_appointment'))),
@@ -38,6 +51,11 @@ class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (showOffline)
+                    OfflineBanner(
+                      message: context.tr('offline_management_notice'),
+                    ),
+                  if (showOffline) const SizedBox(height: 16),
                   Text(
                     context.tr('cancel_appointment_help'),
                     style: Theme.of(context).textTheme.bodyLarge,
@@ -55,7 +73,10 @@ class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
                   ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed: provider.isLoading ? null : _cancel,
+                    onPressed:
+                        provider.isLoading || !serviceProvider.isOnline
+                            ? null
+                            : _cancel,
                     icon: const Icon(Icons.cancel_outlined),
                     label: provider.isLoading
                         ? Text(context.tr('loading'))

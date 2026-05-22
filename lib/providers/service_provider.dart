@@ -10,14 +10,16 @@ class ServiceProvider extends ChangeNotifier {
   final ServiceApiService _serviceApiService;
   final LocalDatabase _localDatabase;
 
-  List<ServiceModel> _services = ServiceModel.starterServices();
+  List<ServiceModel> _services = [];
   bool _isLoading = false;
-  bool _isOnline = true;
+  bool _isOnline = false;
+  bool _hasCheckedConnection = false;
   String? _errorMessage;
 
   List<ServiceModel> get services => _services;
   bool get isLoading => _isLoading;
   bool get isOnline => _isOnline;
+  bool get hasCheckedConnection => _hasCheckedConnection;
   String? get errorMessage => _errorMessage;
 
   ServiceModel? serviceById(int id) {
@@ -39,11 +41,10 @@ class ServiceProvider extends ChangeNotifier {
       await _localDatabase.cacheServices(remoteServices);
     } catch (_) {
       final cachedServices = await _localDatabase.getCachedServices();
-      _services = cachedServices.isEmpty
-          ? ServiceModel.starterServices()
-          : cachedServices;
+      _services = cachedServices;
       _isOnline = false;
     } finally {
+      _hasCheckedConnection = true;
       _isLoading = false;
       notifyListeners();
     }
@@ -69,6 +70,7 @@ class ServiceProvider extends ChangeNotifier {
       _isOnline = false;
       return serviceById(id);
     } finally {
+      _hasCheckedConnection = true;
       _isLoading = false;
       notifyListeners();
     }

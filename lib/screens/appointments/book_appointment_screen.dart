@@ -54,6 +54,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     final services = serviceProvider.services;
     final selectedService = _selectedService(services);
     final isBookingEnabled = serviceProvider.isOnline;
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('book_appointment'))),
@@ -65,9 +67,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!isBookingEnabled)
+                  if (showOffline)
                     OfflineBanner(message: context.tr('offline_booking_notice')),
-                  if (!isBookingEnabled) const SizedBox(height: 16),
+                  if (showOffline) const SizedBox(height: 16),
                   TextFormField(
                     controller: _nameController,
                     textInputAction: TextInputAction.next,

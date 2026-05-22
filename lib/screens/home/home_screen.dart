@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_localizations.dart';
 import '../../core/app_routes.dart';
+import '../../models/appointment_model.dart';
+import '../../providers/appointment_provider.dart';
 import '../../providers/service_provider.dart';
+import '../../widgets/appointment_summary_card.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/language_switcher.dart';
 import '../../widgets/offline_banner.dart';
 import '../../widgets/section_header.dart';
@@ -21,14 +25,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ServiceProvider>().loadServices();
+      _refreshData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final serviceProvider = context.watch<ServiceProvider>();
+    final appointmentProvider = context.watch<AppointmentProvider>();
     final topServices = serviceProvider.services.take(3).toList();
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
 
     return Scaffold(
       appBar: AppBar(
@@ -41,16 +48,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: serviceProvider.loadServices,
+        onRefresh: _refreshData,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
             _HeroCard(isOnline: serviceProvider.isOnline),
             const SizedBox(height: 16),
-            if (!serviceProvider.isOnline)
+            if (showOffline)
               OfflineBanner(message: context.tr('offline_services_notice')),
-            if (!serviceProvider.isOnline) const SizedBox(height: 16),
+            if (showOffline) const SizedBox(height: 16),
             _KebeleInfoCard(),
+            if (showOffline && appointmentProvider.cachedHistory.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _CachedHistorySection(
+                appointments: appointmentProvider.cachedHistory.take(3).toList(),
+              ),
+            ],
             const SizedBox(height: 24),
             SectionHeader(
               title: context.tr('available_services'),
@@ -60,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 12),
             if (serviceProvider.isLoading)
               const Center(child: CircularProgressIndicator())
+            else if (topServices.isEmpty)
+              EmptyState(message: context.tr('no_services'))
             else
               ...topServices.map(
                 (service) => Padding(
@@ -79,6 +94,42 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _refreshData() async {
+    final serviceProvider = context.read<ServiceProvider>();
+    final appointmentProvider = context.read<AppointmentProvider>();
+
+    await serviceProvider.loadServices();
+    await appointmentProvider.loadCachedHistory();
+    if (serviceProvider.isOnline) {
+      await appointmentProvider.syncCachedHistory();
+    }
+  }
+}
+
+class _CachedHistorySection extends StatelessWidget {
+  const _CachedHistorySection({required this.appointments});
+
+  final List<AppointmentModel> appointments;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: context.tr('cached_history')),
+        const SizedBox(height: 12),
+        Text(context.tr('offline_cached_history_notice')),
+        const SizedBox(height: 12),
+        ...appointments.map(
+          (appointment) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: AppointmentSummaryCard(appointment: appointment),
+          ),
+        ),
+      ],
     );
   }
 }

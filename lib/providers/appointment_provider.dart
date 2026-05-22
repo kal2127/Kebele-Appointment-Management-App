@@ -27,6 +27,29 @@ class AppointmentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> syncCachedHistory() async {
+    final cachedAppointments = await _localDatabase.getCachedAppointments();
+    if (cachedAppointments.isEmpty) {
+      _cachedHistory = [];
+      notifyListeners();
+      return;
+    }
+
+    for (final cachedAppointment in cachedAppointments) {
+      try {
+        final latestAppointment = await _appointmentApiService.trackAppointment(
+          cachedAppointment.appointmentNumber,
+        );
+        await _localDatabase.cacheAppointment(latestAppointment);
+      } catch (_) {
+        // If the API is unavailable, keep the existing cached history.
+        break;
+      }
+    }
+    _cachedHistory = await _localDatabase.getCachedAppointments();
+    notifyListeners();
+  }
+
   Future<void> loadAvailableSlots({
     required int serviceId,
     required DateTime date,
@@ -90,6 +113,7 @@ class AppointmentProvider extends ChangeNotifier {
       final appointment =
           await _appointmentApiService.trackAppointment(appointmentNumber);
       await _localDatabase.cacheAppointment(appointment);
+      await loadCachedHistory();
       return appointment;
     } catch (_) {
       final cachedAppointment =
@@ -118,6 +142,7 @@ class AppointmentProvider extends ChangeNotifier {
         appointmentTime: appointmentTime,
       );
       await _localDatabase.cacheAppointment(appointment);
+      await loadCachedHistory();
       return appointment;
     } catch (_) {
       _errorMessage = 'error_generic';

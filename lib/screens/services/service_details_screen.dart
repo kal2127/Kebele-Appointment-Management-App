@@ -31,6 +31,8 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     final serviceProvider = context.watch<ServiceProvider>();
     final service = serviceProvider.serviceById(widget.service.id) ?? widget.service;
     final documents = service.localizedDocuments(context);
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('service_details_title'))),
@@ -45,11 +47,11 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                   if (serviceProvider.isLoading)
                     const LinearProgressIndicator(),
                   if (serviceProvider.isLoading) const SizedBox(height: 16),
-                  if (!serviceProvider.isOnline)
+                  if (showOffline)
                     OfflineBanner(
                       message: context.tr('offline_services_notice'),
                     ),
-                  if (!serviceProvider.isOnline) const SizedBox(height: 16),
+                  if (showOffline) const SizedBox(height: 16),
                   _ServiceHero(service: service),
                   const SizedBox(height: 16),
                   _DocumentsCard(documents: documents),
@@ -67,7 +69,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     icon: const Icon(Icons.calendar_month_outlined),
                     label: Text(context.tr('book_this_service')),
                   ),
-                  if (!serviceProvider.isOnline) ...[
+                  if (showOffline) ...[
                     const SizedBox(height: 10),
                     Text(
                       context.tr('offline_booking_notice'),

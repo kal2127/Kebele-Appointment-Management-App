@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../core/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/service_provider.dart';
 import '../../utils/validators.dart';
 import '../../widgets/appointment_summary_card.dart';
+import '../../widgets/offline_banner.dart';
 import '../../widgets/responsive_page.dart';
 
 class TrackAppointmentScreen extends StatefulWidget {
@@ -21,6 +23,14 @@ class _TrackAppointmentScreenState extends State<TrackAppointmentScreen> {
   AppointmentModel? _appointment;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ServiceProvider>().loadServices();
+    });
+  }
+
+  @override
   void dispose() {
     _numberController.dispose();
     super.dispose();
@@ -29,6 +39,9 @@ class _TrackAppointmentScreenState extends State<TrackAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     final appointmentProvider = context.watch<AppointmentProvider>();
+    final serviceProvider = context.watch<ServiceProvider>();
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('track_appointment'))),
@@ -40,6 +53,11 @@ class _TrackAppointmentScreenState extends State<TrackAppointmentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (showOffline)
+                    OfflineBanner(
+                      message: context.tr('offline_tracking_notice'),
+                    ),
+                  if (showOffline) const SizedBox(height: 16),
                   Text(
                     context.tr('track_appointment_help'),
                     style: Theme.of(context).textTheme.bodyLarge,

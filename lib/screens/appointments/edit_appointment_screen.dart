@@ -5,8 +5,10 @@ import 'package:provider/provider.dart';
 import '../../core/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/service_provider.dart';
 import '../../utils/validators.dart';
 import '../../widgets/appointment_summary_card.dart';
+import '../../widgets/offline_banner.dart';
 import '../../widgets/responsive_page.dart';
 
 class EditAppointmentScreen extends StatefulWidget {
@@ -26,6 +28,14 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
   String? _newTime;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ServiceProvider>().loadServices();
+    });
+  }
+
+  @override
   void dispose() {
     _numberController.dispose();
     super.dispose();
@@ -34,6 +44,9 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppointmentProvider>();
+    final serviceProvider = context.watch<ServiceProvider>();
+    final showOffline = serviceProvider.hasCheckedConnection &&
+        !serviceProvider.isOnline;
     final canEdit = _appointment == null
         ? false
         : _appointment!.appointmentDate
@@ -50,6 +63,11 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (showOffline)
+                    OfflineBanner(
+                      message: context.tr('offline_management_notice'),
+                    ),
+                  if (showOffline) const SizedBox(height: 16),
                   TextFormField(
                     controller: _numberController,
                     decoration: InputDecoration(
@@ -88,7 +106,7 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
                       ),
                       const SizedBox(height: 14),
                       OutlinedButton.icon(
-                        onPressed: _pickNewDate,
+                        onPressed: serviceProvider.isOnline ? _pickNewDate : null,
                         icon: const Icon(Icons.calendar_month_outlined),
                         label: Text(
                           _newDate == null
@@ -108,6 +126,7 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
                       FilledButton(
                         onPressed: _newDate != null &&
                                 _newTime != null &&
+                                serviceProvider.isOnline &&
                                 !provider.isLoading
                             ? _saveChanges
                             : null,
