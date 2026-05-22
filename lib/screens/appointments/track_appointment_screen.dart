@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../providers/appointment_provider.dart';
 import '../../utils/validators.dart';
+import '../../widgets/appointment_summary_card.dart';
+import '../../widgets/responsive_page.dart';
 
 class TrackAppointmentScreen extends StatefulWidget {
   const TrackAppointmentScreen({super.key});
@@ -34,27 +35,45 @@ class _TrackAppointmentScreenState extends State<TrackAppointmentScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
           children: [
-            TextFormField(
-              controller: _numberController,
-              decoration: InputDecoration(
-                labelText: context.tr('enter_appointment_number'),
+            ResponsivePage(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('track_appointment_help'),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _numberController,
+                    decoration: InputDecoration(
+                      labelText: context.tr('enter_appointment_number'),
+                    ),
+                    validator: (value) => Validators.requiredField(
+                      value,
+                      context.tr('field_required'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: appointmentProvider.isLoading ? null : _search,
+                    icon: const Icon(Icons.search_outlined),
+                    label: appointmentProvider.isLoading
+                        ? Text(context.tr('loading'))
+                        : Text(context.tr('search')),
+                  ),
+                  const SizedBox(height: 20),
+                  if (appointmentProvider.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_appointment != null)
+                    AppointmentSummaryCard(
+                      appointment: _appointment!,
+                      title: context.tr('track_result_title'),
+                    ),
+                ],
               ),
-              validator: (value) =>
-                  Validators.requiredField(value, context.tr('field_required')),
             ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: appointmentProvider.isLoading ? null : _search,
-              icon: const Icon(Icons.search_outlined),
-              label: Text(context.tr('search')),
-            ),
-            const SizedBox(height: 20),
-            if (appointmentProvider.isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (_appointment != null)
-              _AppointmentResult(appointment: _appointment!),
           ],
         ),
       ),
@@ -70,74 +89,8 @@ class _TrackAppointmentScreenState extends State<TrackAppointmentScreen> {
     setState(() => _appointment = appointment);
     if (appointment == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('error_generic'))),
+        SnackBar(content: Text(context.tr('appointment_not_found'))),
       );
     }
-  }
-}
-
-class _AppointmentResult extends StatelessWidget {
-  const _AppointmentResult({required this.appointment});
-
-  final AppointmentModel appointment;
-
-  @override
-  Widget build(BuildContext context) {
-    final dateFormat = DateFormat('yyyy-MM-dd');
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _Row(
-              label: context.tr('appointment_number'),
-              value: appointment.appointmentNumber,
-            ),
-            _Row(
-              label: context.tr('service_list_title'),
-              value: appointment.serviceName,
-            ),
-            _Row(
-              label: context.tr('appointment_date'),
-              value: dateFormat.format(appointment.appointmentDate),
-            ),
-            _Row(
-              label: context.tr('appointment_time'),
-              value: appointment.appointmentTime,
-            ),
-            _Row(
-              label: context.tr('appointment_status'),
-              value: appointment.status,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
   }
 }

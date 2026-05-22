@@ -6,6 +6,8 @@ import '../../core/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../providers/appointment_provider.dart';
 import '../../utils/validators.dart';
+import '../../widgets/appointment_summary_card.dart';
+import '../../widgets/responsive_page.dart';
 
 class EditAppointmentScreen extends StatefulWidget {
   const EditAppointmentScreen({super.key});
@@ -15,6 +17,7 @@ class EditAppointmentScreen extends StatefulWidget {
 }
 
 class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _numberController = TextEditingController();
   final _dateFormat = DateFormat('yyyy-MM-dd');
 
@@ -39,73 +42,92 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('edit_appointment'))),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          TextFormField(
-            controller: _numberController,
-            decoration: InputDecoration(
-              labelText: context.tr('enter_appointment_number'),
-            ),
-          ),
-          const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: provider.isLoading ? null : _findAppointment,
-            icon: const Icon(Icons.search_outlined),
-            label: Text(context.tr('search')),
-          ),
-          const SizedBox(height: 20),
-          if (provider.isLoading) const Center(child: CircularProgressIndicator()),
-          if (_appointment != null) ...[
-            Text(
-              '${context.tr('appointment_date')}: ${_dateFormat.format(_appointment!.appointmentDate)}',
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: canEdit ? _pickNewDate : null,
-              icon: const Icon(Icons.calendar_month_outlined),
-              label: Text(
-                _newDate == null
-                    ? context.tr('select_date')
-                    : _dateFormat.format(_newDate!),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          children: [
+            ResponsivePage(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _numberController,
+                    decoration: InputDecoration(
+                      labelText: context.tr('enter_appointment_number'),
+                    ),
+                    validator: (value) => Validators.requiredField(
+                      value,
+                      context.tr('field_required'),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    onPressed: provider.isLoading ? null : _findAppointment,
+                    icon: const Icon(Icons.search_outlined),
+                    label: Text(context.tr('search')),
+                  ),
+                  const SizedBox(height: 20),
+                  if (provider.isLoading)
+                    const Center(child: CircularProgressIndicator()),
+                  if (_appointment != null) ...[
+                    AppointmentSummaryCard(
+                      appointment: _appointment!,
+                      title: context.tr('current_appointment'),
+                    ),
+                    const SizedBox(height: 16),
+                    if (!canEdit)
+                      _InfoCard(
+                        icon: Icons.lock_clock_outlined,
+                        message: context.tr('cannot_edit_one_day'),
+                        isError: true,
+                      )
+                    else ...[
+                      _InfoCard(
+                        icon: Icons.edit_calendar_outlined,
+                        message: context.tr('edit_allowed_message'),
+                      ),
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        onPressed: _pickNewDate,
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: Text(
+                          _newDate == null
+                              ? context.tr('select_new_date')
+                              : _dateFormat.format(_newDate!),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _EditSlotSelector(
+                        hasDate: _newDate != null,
+                        selectedTime: _newTime,
+                        onSelected: (slot) {
+                          setState(() => _newTime = slot);
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton(
+                        onPressed: _newDate != null &&
+                                _newTime != null &&
+                                !provider.isLoading
+                            ? _saveChanges
+                            : null,
+                        child: provider.isLoading
+                            ? Text(context.tr('loading'))
+                            : Text(context.tr('save_changes')),
+                      ),
+                    ],
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: provider.availableSlots.map((slot) {
-                return ChoiceChip(
-                  label: Text(slot),
-                  selected: _newTime == slot,
-                  onSelected: canEdit
-                      ? (_) => setState(() => _newTime = slot)
-                      : null,
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: canEdit && _newDate != null && _newTime != null
-                  ? _saveChanges
-                  : null,
-              child: Text(context.tr('save_changes')),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
 
   Future<void> _findAppointment() async {
-    final error = Validators.requiredField(
-      _numberController.text,
-      context.tr('field_required'),
-    );
-    if (error != null) {
-      _showMessage(error);
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     final appointment = await context
         .read<AppointmentProvider>()
         .trackAppointment(_numberController.text.trim());
@@ -115,7 +137,11 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
       _newDate = null;
       _newTime = null;
     });
-    if (appointment == null) _showMessage(context.tr('error_generic'));
+    _showMessage(
+      appointment == null
+          ? context.tr('appointment_not_found')
+          : context.tr('appointment_found'),
+    );
   }
 
   Future<void> _pickNewDate() async {
@@ -144,14 +170,102 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
           appointmentTime: _newTime!,
         );
     if (!mounted) return;
-    _showMessage(
-      updated == null ? context.tr('error_generic') : context.tr('save_changes'),
-    );
+    if (updated == null) {
+      _showMessage(context.tr('error_generic'));
+      return;
+    }
+    setState(() {
+      _appointment = updated;
+      _newDate = null;
+      _newTime = null;
+    });
+    _showMessage(context.tr('appointment_updated'));
   }
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+}
+
+class _EditSlotSelector extends StatelessWidget {
+  const _EditSlotSelector({
+    required this.hasDate,
+    required this.selectedTime,
+    required this.onSelected,
+  });
+
+  final bool hasDate;
+  final String? selectedTime;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AppointmentProvider>();
+
+    if (!hasDate) {
+      return Text(context.tr('choose_date_first'));
+    }
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (provider.errorMessage != null) {
+      return _InfoCard(
+        icon: Icons.error_outline,
+        message: context.tr(provider.errorMessage!),
+        isError: true,
+      );
+    }
+    if (provider.availableSlots.isEmpty) {
+      return _InfoCard(
+        icon: Icons.event_busy_outlined,
+        message: context.tr('no_available_slots'),
+        isError: true,
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: provider.availableSlots.map((slot) {
+        return ChoiceChip(
+          label: Text(slot),
+          selected: selectedTime == slot,
+          onSelected: (_) => onSelected(slot),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({
+    required this.icon,
+    required this.message,
+    this.isError = false,
+  });
+
+  final IconData icon;
+  final String message;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isError
+        ? Theme.of(context).colorScheme.error
+        : Theme.of(context).colorScheme.primary;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: color),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message)),
+          ],
+        ),
+      ),
     );
   }
 }

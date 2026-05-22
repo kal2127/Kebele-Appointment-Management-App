@@ -46,7 +46,15 @@ class AppointmentService {
     );
   }
 
-  Future<void> cancel(String idOrNumber) {
+  Future<void> cancel(String idOrNumber) async {
+    if (idOrNumber.trim().isEmpty) {
+      throw ArgumentError('appointment number is required.');
+    }
+    final appointment =
+        await _appointmentRepository.findByIdOrNumber(idOrNumber);
+    if (appointment == null) {
+      throw StateError('Appointment not found.');
+    }
     return _appointmentRepository.cancel(idOrNumber);
   }
 

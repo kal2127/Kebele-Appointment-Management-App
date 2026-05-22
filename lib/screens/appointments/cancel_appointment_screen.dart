@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_localizations.dart';
 import '../../providers/appointment_provider.dart';
 import '../../utils/validators.dart';
+import '../../widgets/responsive_page.dart';
 
 class CancelAppointmentScreen extends StatefulWidget {
   const CancelAppointmentScreen({super.key});
@@ -14,6 +15,7 @@ class CancelAppointmentScreen extends StatefulWidget {
 }
 
 class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _numberController = TextEditingController();
 
   @override
@@ -28,23 +30,39 @@ class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('cancel_appointment'))),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: Form(
+        key: _formKey,
+        child: ListView(
           children: [
-            TextFormField(
-              controller: _numberController,
-              decoration: InputDecoration(
-                labelText: context.tr('enter_appointment_number'),
+            ResponsivePage(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('cancel_appointment_help'),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _numberController,
+                    decoration: InputDecoration(
+                      labelText: context.tr('enter_appointment_number'),
+                    ),
+                    validator: (value) => Validators.requiredField(
+                      value,
+                      context.tr('field_required'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: provider.isLoading ? null : _cancel,
+                    icon: const Icon(Icons.cancel_outlined),
+                    label: provider.isLoading
+                        ? Text(context.tr('loading'))
+                        : Text(context.tr('cancel_appointment')),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: provider.isLoading ? null : _cancel,
-              icon: const Icon(Icons.cancel_outlined),
-              label: provider.isLoading
-                  ? Text(context.tr('loading'))
-                  : Text(context.tr('cancel_appointment')),
             ),
           ],
         ),
@@ -53,21 +71,37 @@ class _CancelAppointmentScreenState extends State<CancelAppointmentScreen> {
   }
 
   Future<void> _cancel() async {
-    final error = Validators.requiredField(
-      _numberController.text,
-      context.tr('field_required'),
+    if (!_formKey.currentState!.validate()) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.tr('cancel_confirmation_title')),
+        content: Text(context.tr('cancel_confirmation_message')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.tr('keep_appointment')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.tr('cancel_appointment')),
+          ),
+        ],
+      ),
     );
-    if (error != null) {
-      _showMessage(error);
-      return;
-    }
+    if (confirmed != true) return;
+
     final success = await context
         .read<AppointmentProvider>()
         .cancelAppointment(_numberController.text.trim());
     if (!mounted) return;
     _showMessage(
-      success ? context.tr('status_cancelled') : context.tr('error_generic'),
+      success
+          ? context.tr('appointment_cancelled_message')
+          : context.tr('error_generic'),
     );
+    if (success) _numberController.clear();
   }
 
   void _showMessage(String message) {

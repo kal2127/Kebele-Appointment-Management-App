@@ -92,8 +92,10 @@ class AppointmentProvider extends ChangeNotifier {
       await _localDatabase.cacheAppointment(appointment);
       return appointment;
     } catch (_) {
-      _errorMessage = 'error_generic';
-      return null;
+      final cachedAppointment =
+          await _localDatabase.getCachedAppointment(appointmentNumber);
+      _errorMessage = cachedAppointment == null ? 'error_generic' : null;
+      return cachedAppointment;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -133,6 +135,11 @@ class AppointmentProvider extends ChangeNotifier {
 
     try {
       await _appointmentApiService.cancelAppointment(appointmentNumber);
+      await _localDatabase.updateCachedAppointmentStatus(
+        appointmentNumber: appointmentNumber,
+        status: 'Cancelled',
+      );
+      await loadCachedHistory();
       return true;
     } catch (_) {
       _errorMessage = 'error_generic';

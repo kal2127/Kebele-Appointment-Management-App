@@ -24,6 +24,8 @@ class AppointmentRepository {
     required int serviceId,
     required DateTime date,
   }) async {
+    if (_isBeforeToday(date)) return [];
+
     final connection = await _connectionFactory.open();
     try {
       final limitRows = await connection.query(
@@ -268,6 +270,13 @@ class AppointmentRepository {
   }
 
   int _asInt(Object? value) => int.parse(value.toString());
+
+  bool _isBeforeToday(DateTime date) {
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    return dateOnly.isBefore(todayOnly);
+  }
 
   String _dateOnly(DateTime date) => date.toIso8601String().split('T').first;
 }

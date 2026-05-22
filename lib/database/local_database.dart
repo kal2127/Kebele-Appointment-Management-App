@@ -108,6 +108,27 @@ class LocalDatabase {
     );
   }
 
+  Future<AppointmentModel?> getCachedAppointment(String appointmentNumber) async {
+    final db = await database;
+    final rows = await db.query(
+      'cached_appointments',
+      where: 'appointment_number = ?',
+      whereArgs: [appointmentNumber],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return AppointmentModel.fromJson(Map<String, dynamic>.from(rows.first));
+  }
+
+  Future<void> updateCachedAppointmentStatus({
+    required String appointmentNumber,
+    required String status,
+  }) async {
+    final appointment = await getCachedAppointment(appointmentNumber);
+    if (appointment == null) return;
+    await cacheAppointment(appointment.copyWith(status: status));
+  }
+
   Future<List<AppointmentModel>> getCachedAppointments() async {
     final db = await database;
     final rows = await db.query(

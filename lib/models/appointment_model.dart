@@ -48,4 +48,28 @@ class AppointmentModel {
       'status': status,
     };
   }
+
+  AppointmentModel copyWith({
+    int? id,
+    String? appointmentNumber,
+    String? residentName,
+    String? phoneNumber,
+    int? serviceId,
+    String? serviceName,
+    DateTime? appointmentDate,
+    String? appointmentTime,
+    String? status,
+  }) {
+    return AppointmentModel(
+      id: id ?? this.id,
+      appointmentNumber: appointmentNumber ?? this.appointmentNumber,
+      residentName: residentName ?? this.residentName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      serviceId: serviceId ?? this.serviceId,
+      serviceName: serviceName ?? this.serviceName,
+      appointmentDate: appointmentDate ?? this.appointmentDate,
+      appointmentTime: appointmentTime ?? this.appointmentTime,
+      status: status ?? this.status,
+    );
+  }
 }
