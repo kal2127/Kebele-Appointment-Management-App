@@ -37,6 +37,9 @@ database/
 docs/
   SETUP.md
   API_EXAMPLES.md
+  PROJECT_GUIDE.md
 ```
 
-See `docs/SETUP.md` for setup steps and `docs/API_EXAMPLES.md` for sample requests.
+See `docs/SETUP.md` for setup steps, `docs/API_EXAMPLES.md` for sample requests,
+and `docs/PROJECT_GUIDE.md` for a beginner-friendly architecture and
+presentation guide.

@@ -37,6 +37,7 @@ class AppointmentProvider extends ChangeNotifier {
 
     for (final cachedAppointment in cachedAppointments) {
       try {
+        // Lightweight sync: re-fetch only appointment numbers already cached.
         final latestAppointment = await _appointmentApiService.trackAppointment(
           cachedAppointment.appointmentNumber,
         );

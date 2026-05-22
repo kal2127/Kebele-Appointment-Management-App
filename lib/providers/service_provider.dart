@@ -38,6 +38,7 @@ class ServiceProvider extends ChangeNotifier {
       final remoteServices = await _serviceApiService.fetchServices();
       _services = remoteServices;
       _isOnline = true;
+      // The app uses the latest successful API response as the offline cache.
       await _localDatabase.cacheServices(remoteServices);
     } catch (_) {
       final cachedServices = await _localDatabase.getCachedServices();
@@ -59,6 +60,7 @@ class ServiceProvider extends ChangeNotifier {
       final remoteService = await _serviceApiService.fetchService(id);
       _upsertService(remoteService);
       _isOnline = true;
+      // Keep the selected service fresh for offline details viewing.
       await _localDatabase.cacheService(remoteService);
       return remoteService;
     } catch (_) {
