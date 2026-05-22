@@ -1,0 +1,14 @@
+name: kebele_appointment_backend
+description: Dart Frog REST API for the Kebele Appointment Management System.
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  dart_frog: any
+  mysql1: any
+  dart_jsonwebtoken: any
+
+dev_dependencies:
+  very_good_analysis: any

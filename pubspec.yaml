@@ -1,0 +1,28 @@
+name: kebele_appointment_management_system
+description: A Flutter mobile app for Ethiopian Kebele appointment management.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: any
+  http: any
+  sqflite: any
+  shared_preferences: any
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/translations/

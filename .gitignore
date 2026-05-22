@@ -1,3 +1,25 @@
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+build/
+coverage/
+android/.gradle/
+ios/Pods/
+ios/.symlinks/
+macos/Pods/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# Local environment files
+.env
+backend/.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
 # Miscellaneous
 *.class
 *.lock
