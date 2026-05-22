@@ -11,12 +11,14 @@ import '../screens/appointments/track_appointment_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/feedback/feedback_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/services/service_details_screen.dart';
 import '../screens/services/service_list_screen.dart';
 import '../screens/staff/staff_dashboard_screen.dart';
 
 class AppRoutes {
   static const home = '/';
   static const services = '/services';
+  static const serviceDetails = '/services/details';
   static const bookAppointment = '/appointments/book';
   static const appointmentConfirmation = '/appointments/confirmation';
   static const editAppointment = '/appointments/edit';
@@ -33,6 +35,12 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case services:
         return MaterialPageRoute(builder: (_) => const ServiceListScreen());
+      case serviceDetails:
+        return MaterialPageRoute(
+          builder: (_) => ServiceDetailsScreen(
+            service: settings.arguments as ServiceModel,
+          ),
+        );
       case bookAppointment:
         return MaterialPageRoute(
           builder: (_) => BookAppointmentScreen(

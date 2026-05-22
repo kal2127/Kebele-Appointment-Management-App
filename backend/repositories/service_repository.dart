@@ -19,7 +19,30 @@ class ServiceRepository {
         WHERE s.is_active = 1
         ORDER BY s.name ASC
       ''');
-      return results.map((row) => Service.fromRow(_rowToMap(row.fields))).toList();
+      return results
+          .map((row) => Service.fromRow(_rowToMap(row.fields)))
+          .toList();
+    } finally {
+      await connection.close();
+    }
+  }
+
+  Future<Service?> findById(int id) async {
+    final connection = await _connectionFactory.open();
+    try {
+      final results = await connection.query(
+        '''
+        SELECT s.id, s.name, s.description, s.required_documents,
+               COALESCE(l.max_appointments_per_day, s.daily_limit) AS daily_limit
+        FROM services s
+        LEFT JOIN appointment_limits l ON l.service_id = s.id
+        WHERE s.id = ? AND s.is_active = 1
+        LIMIT 1
+        ''',
+        [id],
+      );
+      if (results.isEmpty) return null;
+      return Service.fromRow(_rowToMap(results.first.fields));
     } finally {
       await connection.close();
     }

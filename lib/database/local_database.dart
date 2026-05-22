@@ -56,17 +56,20 @@ class LocalDatabase {
     for (final service in services) {
       batch.insert(
         'cached_services',
-        {
-          'id': service.id,
-          'name': service.name,
-          'description': service.description,
-          'required_documents': json.encode(service.requiredDocuments),
-          'daily_limit': service.dailyLimit,
-        },
+        _serviceRow(service),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
     await batch.commit(noResult: true);
+  }
+
+  Future<void> cacheService(ServiceModel service) async {
+    final db = await database;
+    await db.insert(
+      'cached_services',
+      _serviceRow(service),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<ServiceModel>> getCachedServices() async {
@@ -84,6 +87,16 @@ class LocalDatabase {
         dailyLimit: row['daily_limit'] as int,
       );
     }).toList();
+  }
+
+  Map<String, Object?> _serviceRow(ServiceModel service) {
+    return {
+      'id': service.id,
+      'name': service.name,
+      'description': service.description,
+      'required_documents': json.encode(service.requiredDocuments),
+      'daily_limit': service.dailyLimit,
+    };
   }
 
   Future<void> cacheAppointment(AppointmentModel appointment) async {

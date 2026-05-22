@@ -8,6 +8,12 @@ All requests and responses use JSON with UTF-8 encoding so English and Amharic t
 curl http://localhost:8080/services
 ```
 
+## Service details
+
+```bash
+curl http://localhost:8080/services/1
+```
+
 ## Book appointment
 
 ```bash

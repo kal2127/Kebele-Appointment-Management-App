@@ -6,6 +6,7 @@ import '../../core/app_routes.dart';
 import '../../providers/service_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/offline_banner.dart';
+import '../../widgets/responsive_page.dart';
 import '../../widgets/service_card.dart';
 
 class ServiceListScreen extends StatefulWidget {
@@ -33,37 +34,43 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
       body: RefreshIndicator(
         onRefresh: serviceProvider.loadServices,
         child: ListView(
-          padding: const EdgeInsets.all(20),
           children: [
-            Text(
-              context.tr('service_list_subtitle'),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 16),
-            if (!serviceProvider.isOnline)
-              OfflineBanner(message: context.tr('offline_services_notice')),
-            if (!serviceProvider.isOnline) const SizedBox(height: 16),
-            if (serviceProvider.isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (serviceProvider.services.isEmpty)
-              EmptyState(message: context.tr('no_services'))
-            else
-              ...serviceProvider.services.map(
-                (service) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: ServiceCard(
-                    service: service,
-                    showDocuments: true,
-                    onTap: serviceProvider.isOnline
-                        ? () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.bookAppointment,
-                              arguments: service,
-                            )
-                        : null,
+            ResponsivePage(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('service_list_subtitle'),
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  if (!serviceProvider.isOnline)
+                    OfflineBanner(
+                      message: context.tr('offline_services_notice'),
+                    ),
+                  if (!serviceProvider.isOnline) const SizedBox(height: 16),
+                  if (serviceProvider.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (serviceProvider.services.isEmpty)
+                    EmptyState(message: context.tr('no_services'))
+                  else
+                    ...serviceProvider.services.map(
+                      (service) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ServiceCard(
+                          service: service,
+                          showDocuments: true,
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.serviceDetails,
+                            arguments: service,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
+            ),
           ],
         ),
       ),

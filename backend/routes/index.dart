@@ -8,6 +8,7 @@ Response onRequest(RequestContext context) {
       'encoding': 'utf-8',
       'routes': [
         'GET /services',
+        'GET /services/:id',
         'GET /appointments/slots',
         'POST /appointments',
         'GET /appointments/:id',

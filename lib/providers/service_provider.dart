@@ -20,6 +20,13 @@ class ServiceProvider extends ChangeNotifier {
   bool get isOnline => _isOnline;
   String? get errorMessage => _errorMessage;
 
+  ServiceModel? serviceById(int id) {
+    for (final service in _services) {
+      if (service.id == id) return service;
+    }
+    return null;
+  }
+
   Future<void> loadServices() async {
     _isLoading = true;
     _errorMessage = null;
@@ -32,11 +39,51 @@ class ServiceProvider extends ChangeNotifier {
       await _localDatabase.cacheServices(remoteServices);
     } catch (_) {
       final cachedServices = await _localDatabase.getCachedServices();
-      _services = cachedServices.isEmpty ? ServiceModel.starterServices() : cachedServices;
+      _services = cachedServices.isEmpty
+          ? ServiceModel.starterServices()
+          : cachedServices;
       _isOnline = false;
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<ServiceModel?> loadServiceDetail(int id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final remoteService = await _serviceApiService.fetchService(id);
+      _upsertService(remoteService);
+      _isOnline = true;
+      await _localDatabase.cacheService(remoteService);
+      return remoteService;
+    } catch (_) {
+      final cachedServices = await _localDatabase.getCachedServices();
+      final cachedService = cachedServices.where((service) => service.id == id);
+      if (cachedService.isNotEmpty) {
+        _upsertService(cachedService.first);
+      }
+      _isOnline = false;
+      return serviceById(id);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void _upsertService(ServiceModel service) {
+    final index = _services.indexWhere((item) => item.id == service.id);
+    if (index == -1) {
+      _services = [..._services, service];
+    } else {
+      _services = [
+        ..._services.take(index),
+        service,
+        ..._services.skip(index + 1),
+      ];
     }
   }
 }

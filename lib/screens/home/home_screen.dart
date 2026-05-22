@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     service: service,
                     onTap: () => Navigator.pushNamed(
                       context,
-                      AppRoutes.bookAppointment,
+                      AppRoutes.serviceDetails,
                       arguments: service,
                     ),
                   ),
