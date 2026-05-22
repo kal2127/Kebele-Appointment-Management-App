@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/appointment_model.dart';
 import '../models/service_model.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
+import '../screens/admin/appointment_limit_management_screen.dart';
+import '../screens/admin/manage_services_screen.dart';
+import '../screens/admin/manage_staff_screen.dart';
 import '../screens/appointments/appointment_confirmation_screen.dart';
 import '../screens/appointments/book_appointment_screen.dart';
 import '../screens/appointments/cancel_appointment_screen.dart';
@@ -32,6 +35,9 @@ class AppRoutes {
   static const staffAppointments = '/staff/appointments';
   static const staffUpdateStatus = '/staff/appointments/status';
   static const adminDashboard = '/admin/dashboard';
+  static const adminServices = '/admin/services';
+  static const adminStaff = '/admin/staff';
+  static const adminLimits = '/admin/limits';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -83,6 +89,14 @@ class AppRoutes {
         );
       case adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+      case adminServices:
+        return MaterialPageRoute(builder: (_) => const ManageServicesScreen());
+      case adminStaff:
+        return MaterialPageRoute(builder: (_) => const ManageStaffScreen());
+      case adminLimits:
+        return MaterialPageRoute(
+          builder: (_) => const AppointmentLimitManagementScreen(),
+        );
       default:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
     }

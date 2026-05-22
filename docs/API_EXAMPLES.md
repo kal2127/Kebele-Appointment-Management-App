@@ -101,6 +101,58 @@ curl -X POST http://localhost:8080/admin/services \
   }'
 ```
 
+## Admin update service
+
+```bash
+curl -X PUT http://localhost:8080/admin/services/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ID issuance",
+    "description": "New Kebele resident ID issuance",
+    "required_documents": ["Recent photo", "House number confirmation"],
+    "daily_limit": 45
+  }'
+```
+
+## Admin delete service
+
+```bash
+curl -X DELETE http://localhost:8080/admin/services/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Admin list staff
+
+```bash
+curl http://localhost:8080/admin/staff \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Admin assign staff to service
+
+```bash
+curl -X PUT http://localhost:8080/admin/staff \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "staff_id": 2,
+    "assigned_service_id": 1
+  }'
+```
+
+## Admin update appointment limit
+
+```bash
+curl -X PUT http://localhost:8080/admin/limits \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service_id": 1,
+    "max_appointments_per_day": 45
+  }'
+```
+
 ## Submit feedback
 
 ```bash

@@ -69,6 +69,41 @@ class ServiceRepository {
     }
   }
 
+  Future<void> update({
+    required int id,
+    required String name,
+    required List<String> requiredDocuments,
+    required int dailyLimit,
+    String? description,
+  }) async {
+    final connection = await _connectionFactory.open();
+    try {
+      await connection.query(
+        '''
+        UPDATE services
+        SET name = ?, description = ?, required_documents = ?, daily_limit = ?
+        WHERE id = ?
+        ''',
+        [name, description, json.encode(requiredDocuments), dailyLimit, id],
+      );
+    } finally {
+      await connection.close();
+    }
+  }
+
+  Future<void> delete(int id) async {
+    final connection = await _connectionFactory.open();
+    try {
+      // Soft delete keeps existing appointments valid for history and reports.
+      await connection.query(
+        'UPDATE services SET is_active = 0 WHERE id = ?',
+        [id],
+      );
+    } finally {
+      await connection.close();
+    }
+  }
+
   Future<void> setLimit({
     required int serviceId,
     required int maxAppointmentsPerDay,

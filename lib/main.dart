@@ -7,12 +7,14 @@ import 'core/app_localizations.dart';
 import 'core/app_routes.dart';
 import 'core/app_theme.dart';
 import 'database/local_database.dart';
+import 'providers/admin_provider.dart';
 import 'providers/appointment_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/staff_provider.dart';
 import 'services/api_client.dart';
+import 'services/admin_api_service.dart';
 import 'services/appointment_api_service.dart';
 import 'services/auth_api_service.dart';
 import 'services/service_api_service.dart';
@@ -48,6 +50,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => StaffProvider(StaffApiService(apiClient)),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AdminProvider(AdminApiService(apiClient)),
         ),
       ],
       child: const KebeleAppointmentApp(),

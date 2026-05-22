@@ -9,25 +9,34 @@ import '../../repositories/user_repository.dart';
 import '../../services/admin_service.dart';
 
 Future<Response> onRequest(RequestContext context) async {
-  if (context.request.method != HttpMethod.post) {
-    return Response.json(
-      statusCode: HttpStatus.methodNotAllowed,
-      body: {'message': 'Method not allowed.'},
-    );
-  }
-
   try {
     requireUser(context, role: 'admin');
-    final body = await context.request.json() as Map<String, dynamic>;
     final adminService = AdminService(
       ServiceRepository(MySqlConnectionFactory()),
       UserRepository(MySqlConnectionFactory()),
     );
-    final id = await adminService.createStaff(body);
-    return Response.json(
-      statusCode: HttpStatus.created,
-      body: {'id': id},
-    );
+
+    switch (context.request.method) {
+      case HttpMethod.get:
+        final staff = await adminService.listStaff();
+        return Response.json(body: {'data': staff});
+      case HttpMethod.post:
+        final body = await context.request.json() as Map<String, dynamic>;
+        final id = await adminService.createStaff(body);
+        return Response.json(
+          statusCode: HttpStatus.created,
+          body: {'id': id},
+        );
+      case HttpMethod.put:
+        final body = await context.request.json() as Map<String, dynamic>;
+        await adminService.assignStaff(body);
+        return Response.json(body: {'message': 'Staff assignment updated.'});
+      default:
+        return Response.json(
+          statusCode: HttpStatus.methodNotAllowed,
+          body: {'message': 'Method not allowed.'},
+        );
+    }
   } catch (error) {
     if (error is Response) return error;
     return Response.json(

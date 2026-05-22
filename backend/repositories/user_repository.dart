@@ -46,6 +46,44 @@ class UserRepository {
     }
   }
 
+  Future<List<User>> findStaff() async {
+    final connection = await _connectionFactory.open();
+    try {
+      final results = await connection.query(
+        '''
+        SELECT id, full_name, email, role, password_hash, assigned_service_id
+        FROM users
+        WHERE role = 'staff' AND is_active = 1
+        ORDER BY full_name ASC
+        ''',
+      );
+      return results
+          .map((row) => User.fromRow(Map<String, dynamic>.from(row.fields)))
+          .toList();
+    } finally {
+      await connection.close();
+    }
+  }
+
+  Future<void> assignStaffToService({
+    required int staffId,
+    required int assignedServiceId,
+  }) async {
+    final connection = await _connectionFactory.open();
+    try {
+      await connection.query(
+        '''
+        UPDATE users
+        SET assigned_service_id = ?
+        WHERE id = ? AND role = 'staff'
+        ''',
+        [assignedServiceId, staffId],
+      );
+    } finally {
+      await connection.close();
+    }
+  }
+
   Future<void> resetPassword({
     required int userId,
     required String newPassword,
