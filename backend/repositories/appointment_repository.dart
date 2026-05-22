@@ -79,16 +79,17 @@ class AppointmentRepository {
     required DateTime appointmentDate,
     required String appointmentTime,
   }) async {
+    // Check the business limit and chosen slot before saving the appointment.
+    final slots = await availableSlots(
+      serviceId: serviceId,
+      date: appointmentDate,
+    );
+    if (!slots.contains(appointmentTime)) {
+      throw StateError('Selected appointment slot is not available.');
+    }
+
     final connection = await _connectionFactory.open();
     try {
-      final slots = await availableSlots(
-        serviceId: serviceId,
-        date: appointmentDate,
-      );
-      if (!slots.contains(appointmentTime)) {
-        throw StateError('Selected appointment slot is not available.');
-      }
-
       final appointmentNumber = _generateAppointmentNumber(serviceId);
       final result = await connection.query(
         '''
@@ -262,7 +263,7 @@ class AppointmentRepository {
   }
 
   String _generateAppointmentNumber(int serviceId) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
     return 'KBL-$serviceId-$timestamp';
   }
 

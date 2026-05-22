@@ -10,16 +10,27 @@ class AppointmentService {
     required int serviceId,
     required DateTime date,
   }) {
-    return _appointmentRepository.availableSlots(serviceId: serviceId, date: date);
+    return _appointmentRepository.availableSlots(
+      serviceId: serviceId,
+      date: date,
+    );
   }
 
   Future<Appointment> book(Map<String, dynamic> body) {
+    final residentName = _requiredString(body, 'resident_name');
+    final phoneNumber = _requiredString(body, 'phone_number');
+    final serviceId = _requiredInt(body, 'service_id');
+    final appointmentDate = DateTime.parse(
+      _requiredString(body, 'appointment_date'),
+    );
+    final appointmentTime = _requiredString(body, 'appointment_time');
+
     return _appointmentRepository.create(
-      residentName: body['resident_name'] as String,
-      phoneNumber: body['phone_number'] as String,
-      serviceId: body['service_id'] as int,
-      appointmentDate: DateTime.parse(body['appointment_date'] as String),
-      appointmentTime: body['appointment_time'] as String,
+      residentName: residentName,
+      phoneNumber: phoneNumber,
+      serviceId: serviceId,
+      appointmentDate: appointmentDate,
+      appointmentTime: appointmentTime,
     );
   }
 
@@ -30,12 +41,26 @@ class AppointmentService {
   Future<Appointment> update(String idOrNumber, Map<String, dynamic> body) {
     return _appointmentRepository.update(
       idOrNumber: idOrNumber,
-      appointmentDate: DateTime.parse(body['appointment_date'] as String),
-      appointmentTime: body['appointment_time'] as String,
+      appointmentDate: DateTime.parse(_requiredString(body, 'appointment_date')),
+      appointmentTime: _requiredString(body, 'appointment_time'),
     );
   }
 
   Future<void> cancel(String idOrNumber) {
     return _appointmentRepository.cancel(idOrNumber);
+  }
+
+  String _requiredString(Map<String, dynamic> body, String key) {
+    final value = body[key];
+    if (value == null || value.toString().trim().isEmpty) {
+      throw ArgumentError('$key is required.');
+    }
+    return value.toString().trim();
+  }
+
+  int _requiredInt(Map<String, dynamic> body, String key) {
+    final value = body[key];
+    if (value is int) return value;
+    return int.parse(_requiredString(body, key));
   }
 }
