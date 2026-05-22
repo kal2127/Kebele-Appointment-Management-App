@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_localizations.dart';
 import '../../models/feedback_model.dart';
-import '../../services/api_client.dart';
-import '../../services/feedback_api_service.dart';
+import '../../providers/feedback_provider.dart';
 import '../../utils/validators.dart';
+import '../../widgets/responsive_page.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -17,10 +18,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final _formKey = GlobalKey<FormState>();
   final _appointmentNumberController = TextEditingController();
   final _messageController = TextEditingController();
-  final _feedbackService = FeedbackApiService(ApiClient());
 
   int? _rating;
-  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -31,48 +30,61 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final feedbackProvider = context.watch<FeedbackProvider>();
+
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('feedback'))),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
           children: [
-            TextFormField(
-              controller: _appointmentNumberController,
-              decoration: InputDecoration(
-                labelText: context.tr('appointment_number'),
-              ),
-            ),
-            const SizedBox(height: 14),
-            DropdownButtonFormField<int>(
-              value: _rating,
-              decoration: InputDecoration(labelText: context.tr('rating_optional')),
-              items: [1, 2, 3, 4, 5]
-                  .map(
-                    (rating) => DropdownMenuItem(
-                      value: rating,
-                      child: Text('$rating'),
+            ResponsivePage(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('feedback_help'),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _appointmentNumberController,
+                    decoration: InputDecoration(
+                      labelText: context.tr('appointment_number_optional'),
                     ),
-                  )
-                  .toList(),
-              onChanged: (value) => setState(() => _rating = value),
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _messageController,
-              minLines: 4,
-              maxLines: 6,
-              decoration: InputDecoration(labelText: context.tr('message')),
-              validator: (value) =>
-                  Validators.requiredField(value, context.tr('field_required')),
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _isSubmitting ? null : _submit,
-              child: _isSubmitting
-                  ? Text(context.tr('loading'))
-                  : Text(context.tr('submit_feedback')),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    context.tr('rating_optional'),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  _RatingSelector(
+                    rating: _rating,
+                    onChanged: (rating) => setState(() => _rating = rating),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _messageController,
+                    minLines: 4,
+                    maxLines: 6,
+                    decoration: InputDecoration(labelText: context.tr('message')),
+                    validator: (value) => Validators.requiredField(
+                      value,
+                      context.tr('field_required'),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    onPressed: feedbackProvider.isLoading ? null : _submit,
+                    child: feedbackProvider.isLoading
+                        ? Text(context.tr('loading'))
+                        : Text(context.tr('submit_feedback')),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -82,26 +94,57 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSubmitting = true);
-    try {
-      await _feedbackService.submitFeedback(
-        FeedbackModel(
-          appointmentNumber: _appointmentNumberController.text.trim().isEmpty
-              ? null
-              : _appointmentNumberController.text.trim(),
-          rating: _rating,
-          message: _messageController.text.trim(),
+
+    final success = await context.read<FeedbackProvider>().submitFeedback(
+          FeedbackModel(
+            appointmentNumber: _appointmentNumberController.text.trim().isEmpty
+                ? null
+                : _appointmentNumberController.text.trim(),
+            rating: _rating,
+            message: _messageController.text.trim(),
+          ),
+        );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? context.tr('feedback_success') : context.tr('error_generic'),
         ),
-      );
-      if (!mounted) return;
-      Navigator.pop(context);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('error_generic'))),
-      );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      ),
+    );
+    if (success) {
+      _appointmentNumberController.clear();
+      _messageController.clear();
+      setState(() => _rating = null);
     }
+  }
+}
+
+class _RatingSelector extends StatelessWidget {
+  const _RatingSelector({
+    required this.rating,
+    required this.onChanged,
+  });
+
+  final int? rating;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6,
+      children: List.generate(5, (index) {
+        final value = index + 1;
+        final isSelected = rating != null && value <= rating!;
+        return IconButton(
+          onPressed: () => onChanged(value),
+          icon: Icon(
+            isSelected ? Icons.star : Icons.star_border,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          tooltip: '$value',
+        );
+      }),
+    );
   }
 }

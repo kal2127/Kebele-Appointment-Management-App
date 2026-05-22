@@ -22,7 +22,7 @@ Future<Response> onRequest(RequestContext context) async {
     await service.submit(body);
     return Response.json(
       statusCode: HttpStatus.created,
-      body: {'message': 'Feedback submitted.'},
+      body: {'message': 'Feedback submitted successfully.'},
     );
   } catch (error) {
     return Response.json(

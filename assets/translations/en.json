@@ -142,6 +142,9 @@
   "keep_appointment": "Keep appointment",
   "submit_feedback": "Submit feedback",
   "rating_optional": "Rating (optional)",
+  "feedback_help": "Share your appointment experience with the Kebele office. Your feedback helps improve the service.",
+  "appointment_number_optional": "Appointment number (optional)",
+  "feedback_success": "Thank you. Your feedback has been submitted.",
   "message": "Message",
   "cached_history": "Cached appointment history"
 }

@@ -142,6 +142,9 @@
   "keep_appointment": "ቀጠሮውን አቆይ",
   "submit_feedback": "አስተያየት ያስገቡ",
   "rating_optional": "ደረጃ (አማራጭ)",
+  "feedback_help": "የቀበሌውን የቀጠሮ አገልግሎት ተሞክሮዎን ያጋሩ። አስተያየትዎ አገልግሎቱን ለማሻሻል ይረዳል።",
+  "appointment_number_optional": "የቀጠሮ ቁጥር (አማራጭ)",
+  "feedback_success": "እናመሰግናለን። አስተያየትዎ ተልኳል።",
   "message": "መልዕክት",
   "cached_history": "የተቀመጠ የቀጠሮ ታሪክ"
 }

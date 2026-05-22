@@ -10,6 +10,7 @@ import 'database/local_database.dart';
 import 'providers/admin_provider.dart';
 import 'providers/appointment_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/feedback_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/staff_provider.dart';
@@ -17,6 +18,7 @@ import 'services/api_client.dart';
 import 'services/admin_api_service.dart';
 import 'services/appointment_api_service.dart';
 import 'services/auth_api_service.dart';
+import 'services/feedback_api_service.dart';
 import 'services/service_api_service.dart';
 import 'services/staff_api_service.dart';
 import 'utils/language_preference.dart';
@@ -53,6 +55,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => AdminProvider(AdminApiService(apiClient)),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FeedbackProvider(FeedbackApiService(apiClient)),
         ),
       ],
       child: const KebeleAppointmentApp(),
