@@ -3,13 +3,20 @@
 ## Flutter app
 
 1. Install Flutter 3.x.
-2. From the repository root, install packages:
+2. From the repository root, generate platform folders if this repository was
+   cloned without them:
+
+```bash
+flutter create .
+```
+
+3. Install packages:
 
 ```bash
 flutter pub get
 ```
 
-3. Run the app with the backend URL for your environment:
+4. Run the app with the backend URL for your environment:
 
 ```bash
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080
